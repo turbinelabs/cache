@@ -24,16 +24,16 @@ import (
 	"github.com/turbinelabs/test/assert"
 )
 
-func TestNewTTLCache(t *testing.T) {
-	c, err := NewTTLCache(0, 1*time.Second)
+func TestNewTTL(t *testing.T) {
+	c, err := NewTTL(0, 1*time.Second)
 	assert.Nil(t, c)
 	assert.ErrorContains(t, err, "positive size")
 
-	c, err = NewTTLCache(10, 0)
+	c, err = NewTTL(10, 0)
 	assert.Nil(t, c)
 	assert.ErrorContains(t, err, "positive TTL")
 
-	c, err = NewTTLCache(10, 10*time.Second)
+	c, err = NewTTL(10, 10*time.Second)
 	assert.Nil(t, err)
 	assert.NonNil(t, c)
 	assert.Equal(t, c.(*ttlLruCache).size, 10)
@@ -43,7 +43,7 @@ func TestNewTTLCache(t *testing.T) {
 }
 
 func TestTTLCacheBasicOperations(t *testing.T) {
-	c, err := NewTTLCache(10, 5*time.Minute)
+	c, err := NewTTL(10, 5*time.Minute)
 	assert.Nil(t, err)
 
 	assert.False(t, c.Add("k1", "v1"))
@@ -69,7 +69,7 @@ func TestTTLCacheBasicOperations(t *testing.T) {
 }
 
 func TestTTLCacheLRUBehavior(t *testing.T) {
-	c, err := NewTTLCache(3, 5*time.Minute)
+	c, err := NewTTL(3, 5*time.Minute)
 	assert.Nil(t, err)
 
 	for i := 1; i <= 6; i++ {
@@ -92,7 +92,7 @@ func TestTTLCacheLRUBehavior(t *testing.T) {
 }
 
 func TestTTLCacheExpiry(t *testing.T) {
-	c, err := NewTTLCache(10, 10*time.Second)
+	c, err := NewTTL(10, 10*time.Second)
 	assert.Nil(t, err)
 
 	tbntime.WithCurrentTimeFrozen(func(ts tbntime.ControlledSource) {

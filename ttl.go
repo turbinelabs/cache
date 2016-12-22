@@ -31,11 +31,11 @@ type entry struct {
 	value    interface{}
 }
 
-// Create a new TTL cache with a maximum size and a TTL for cache
-// entries. When the cache is full and a new key is added, a linear
-// search is undertaken to find an expired cache entry for eviction
-// before evicting the least recently used cache entry.
-func NewTTLCache(size int, ttl time.Duration) (Cache, error) {
+// NewTTL create a new TTL cache with a maximum size and a TTL for cache
+// entries. When the cache is full and a new key is added, a linear search is
+// undertaken to find an expired cache entry for eviction before evicting the
+// least recently used cache entry.
+func NewTTL(size int, ttl time.Duration) (Cache, error) {
 	underlying, err := lru.NewLRU(size, nil)
 	if err != nil {
 		return nil, err
