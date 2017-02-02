@@ -37,7 +37,7 @@ Additionally, we vendor
 [github.com/hashicorp/golang-lru](https://github.com/hashicorp/golang-lru).
 This should be considered an opaque implementation detail,
 see [Vendoring](http://github.com/turbinelabs/developer/blob/master/README.md#vendoring)
-for more detail.
+for more discussion.
 
 ## Install
 
