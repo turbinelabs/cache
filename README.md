@@ -14,7 +14,7 @@
 # turbinelabs/cache
 
 [![Apache 2.0](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
-[![GoDoc](https://https://godoc.org/github.com/turbinelabs/cache?status.svg)](https://https://godoc.org/github.com/turbinelabs/cache)
+[![GoDoc](https://godoc.org/github.com/turbinelabs/cache?status.svg)](https://godoc.org/github.com/turbinelabs/cache)
 [![CircleCI](https://circleci.com/gh/turbinelabs/cache.svg?style=shield)](https://circleci.com/gh/turbinelabs/cache)
 
 The cache project provides a simple Cache interface, with several concrete
