@@ -45,6 +45,16 @@ func (mr *MockCacheMockRecorder) Get(key interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCache)(nil).Get), key)
 }
 
+// ForEach mocks base method
+func (m *MockCache) ForEach(f func(interface{}, interface{})) {
+	m.ctrl.Call(m, "ForEach", f)
+}
+
+// ForEach indicates an expected call of ForEach
+func (mr *MockCacheMockRecorder) ForEach(f interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForEach", reflect.TypeOf((*MockCache)(nil).ForEach), f)
+}
+
 // Add mocks base method
 func (m *MockCache) Add(key, value interface{}) bool {
 	ret := m.ctrl.Call(m, "Add", key, value)

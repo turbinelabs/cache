@@ -37,6 +37,8 @@ func TestTTLCacheBasicOperations(t *testing.T) {
 	assert.Equal(t, c.Len(), 3)
 
 	assert.True(t, c.Remove("k3"))
+	assert.Equal(t, c.Len(), 2)
+
 	assert.False(t, c.Remove("never-added"))
 	assert.Equal(t, c.Len(), 2)
 
@@ -60,11 +62,9 @@ func TestTTLCacheLRUBehavior(t *testing.T) {
 		assert.False(t, c.Add(i, i+100))
 
 		if i >= 4 {
-			for j := 1; j <= i-3; j++ {
-				v, ok := c.Get(j)
-				assert.Nil(t, v)
-				assert.False(t, ok)
-			}
+			v, ok := c.Get(i - 3)
+			assert.Nil(t, v)
+			assert.False(t, ok)
 		}
 	}
 
@@ -73,6 +73,41 @@ func TestTTLCacheLRUBehavior(t *testing.T) {
 		assert.Equal(t, v, i+100)
 		assert.True(t, ok)
 	}
+}
+
+func TestTTLCacheForEachLRUBehavior(t *testing.T) {
+	c, err := NewTTL(5, 5*time.Minute)
+	assert.Nil(t, err)
+
+	for i := 1; i <= 5; i++ {
+		assert.False(t, c.Add(i, i+100))
+	}
+
+	keys := []int{}
+	c.ForEach(func(k, v interface{}) {
+		i := k.(int)
+		assert.Equal(t, v.(int), i+100)
+		keys = append(keys, i)
+	})
+	assert.ArrayEqual(t, keys, []int{1, 2, 3, 4, 5})
+
+	// Re-order the LRU eviction list.
+	for idx := len(keys) - 1; idx >= 0; idx-- {
+		c.Get(keys[idx])
+	}
+
+	keys2 := []int{}
+	c.ForEach(func(k, _ interface{}) {
+		keys2 = append(keys2, k.(int))
+	})
+	assert.ArrayEqual(t, keys2, []int{5, 4, 3, 2, 1})
+
+	c.Add(100, 200)
+	keys3 := []int{}
+	c.ForEach(func(k, _ interface{}) {
+		keys3 = append(keys3, k.(int))
+	})
+	assert.ArrayEqual(t, keys3, []int{4, 3, 2, 1, 100})
 }
 
 func TestTTLCacheExpiry(t *testing.T) {
@@ -101,6 +136,7 @@ func TestTTLCacheExpiry(t *testing.T) {
 			assert.False(t, ok)
 		}
 
+		assert.Equal(t, c.Len(), 0)
 		c.Clear()
 
 		tNow := ts.Now()
@@ -130,5 +166,34 @@ func TestTTLCacheExpiry(t *testing.T) {
 		v, ok = c.Get(100)
 		assert.Equal(t, v, 200)
 		assert.True(t, ok)
+	})
+}
+
+func TestTTLCacheExpiryInForEach(t *testing.T) {
+	c, err := NewTTL(10, 10*time.Second)
+	assert.Nil(t, err)
+
+	tbntime.WithCurrentTimeFrozen(func(ts tbntime.ControlledSource) {
+		c.(*ttlLruCache).timeSource = ts
+
+		for i := 1; i <= 3; i++ {
+			c.Add(i, i+100)
+			ts.Advance(1 * time.Second)
+		}
+
+		// Reverse the LRU ordering
+		c.Get(3)
+		c.Get(1)
+		c.Get(2)
+
+		ts.Advance(7 * time.Second)
+
+		keys := []int{}
+		c.ForEach(func(k, v interface{}) {
+			i := k.(int)
+			assert.Equal(t, v.(int), i+100)
+			keys = append(keys, i)
+		})
+		assert.ArrayEqual(t, keys, []int{3, 2})
 	})
 }

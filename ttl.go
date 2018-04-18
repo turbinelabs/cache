@@ -15,10 +15,11 @@ type entry struct {
 	value    interface{}
 }
 
-// NewTTL create a new TTL cache with a maximum size and a TTL for cache
-// entries. When the cache is full and a new key is added, a linear search is
-// undertaken to find an expired cache entry for eviction before evicting the
-// least recently used cache entry.
+// NewTTL create a new cache with a maximum size and a TTL for cache entries. When
+// the cache is full and a new key is added, a linear search is undertaken to find an
+// expired cache entry for eviction before evicting the least recently used cache
+// entry. Invocations of ForEach do not modify the LRU eviction list but expired
+// items are never returned from ForEach.
 func NewTTL(size int, ttl time.Duration) (Cache, error) {
 	underlying, err := lru.NewLRU(size, nil)
 	if err != nil {
@@ -39,7 +40,7 @@ func NewTTL(size int, ttl time.Duration) (Cache, error) {
 
 type ttlLruCache struct {
 	lru        *lru.LRU
-	lock       sync.RWMutex
+	lock       sync.Mutex
 	size       int
 	ttl        time.Duration
 	timeSource tbntime.Source
@@ -53,7 +54,7 @@ func (c *ttlLruCache) Add(key, value interface{}) bool {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	_, exists := c.getEntry(key)
+	_, exists := c.getEntry(key, false)
 	if c.lru.Len() >= c.size && !exists {
 		// Look for expired entries to evict to avoid
 		// potentially evicting a live entry.
@@ -91,16 +92,39 @@ func (c *ttlLruCache) Get(key interface{}) (interface{}, bool) {
 	return c.get(key)
 }
 
+// ForEach iterates over the non-expired key-value pairs in the Cache from least to
+// most recently used.
+func (c *ttlLruCache) ForEach(f func(key, value interface{})) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	for _, key := range c.lru.Keys() {
+		if entry, ok := c.getEntry(key, true); ok {
+			f(key, entry.value)
+		}
+	}
+}
+
 func (c *ttlLruCache) get(key interface{}) (interface{}, bool) {
-	if entry, ok := c.getEntry(key); ok {
+	if entry, ok := c.getEntry(key, false); ok {
 		return entry.value, true
 	}
 
 	return nil, false
 }
 
-func (c *ttlLruCache) getEntry(key interface{}) (*entry, bool) {
-	v, ok := c.lru.Get(key)
+func (c *ttlLruCache) getEntry(key interface{}, peek bool) (*entry, bool) {
+	var (
+		v  interface{}
+		ok bool
+	)
+
+	if peek {
+		v, ok = c.lru.Peek(key)
+	} else {
+		v, ok = c.lru.Get(key)
+	}
+
 	if !ok {
 		return nil, false
 	}
@@ -115,8 +139,8 @@ func (c *ttlLruCache) getEntry(key interface{}) (*entry, bool) {
 }
 
 func (c *ttlLruCache) Len() int {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	return c.lru.Len()
 }

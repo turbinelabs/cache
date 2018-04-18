@@ -12,6 +12,10 @@ type Cache interface {
 	// distinguish a nil value from "not found."
 	Get(key interface{}) (interface{}, bool)
 
+	// ForEach invokes f for each key/value in the cache. Callers should not depend
+	// on deterministic ordering.
+	ForEach(f func(key, value interface{}))
+
 	// Add an item to the cache. Returns true if it replaced an
 	// existing item. The value may be nil.
 	Add(key, value interface{}) bool
@@ -27,15 +31,16 @@ type Cache interface {
 	Len() int
 }
 
-// Returns a Cache implementation that caches nothing.
+// NewNoopCache returns a Cache implementation that caches nothing.
 func NewNoopCache() Cache {
 	return &noopCache{}
 }
 
 type noopCache struct{}
 
-func (_ *noopCache) Get(_ interface{}) (interface{}, bool) { return nil, false }
-func (_ *noopCache) Add(_, _ interface{}) bool             { return false }
-func (_ *noopCache) Remove(_ interface{}) bool             { return false }
-func (_ *noopCache) Clear()                                {}
-func (_ *noopCache) Len() int                              { return 0 }
+func (*noopCache) Get(_ interface{}) (interface{}, bool) { return nil, false }
+func (*noopCache) ForEach(_ func(_, _ interface{}))      {}
+func (*noopCache) Add(_, _ interface{}) bool             { return false }
+func (*noopCache) Remove(_ interface{}) bool             { return false }
+func (*noopCache) Clear()                                {}
+func (*noopCache) Len() int                              { return 0 }
