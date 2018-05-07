@@ -13,12 +13,11 @@
 
 # turbinelabs/cache
 
-**NOTE**: *As of 2017-02-08 we have decided not to open-source this for now.
-We're leaving the README intact for posterity.*
-
 [![Apache 2.0](https://img.shields.io/badge/license-apache%202.0-blue.svg)](LICENSE)
 [![GoDoc](https://godoc.org/github.com/turbinelabs/cache?status.svg)](https://godoc.org/github.com/turbinelabs/cache)
 [![CircleCI](https://circleci.com/gh/turbinelabs/cache.svg?style=shield)](https://circleci.com/gh/turbinelabs/cache)
+[![Go Report Card](https://goreportcard.com/badge/github.com/turbinelabs/cache)](https://goreportcard.com/report/github.com/turbinelabs/cache)
+[![codecov](https://codecov.io/gh/turbinelabs/cache/branch/master/graph/badge.svg)](https://codecov.io/gh/turbinelabs/cache)
 
 The cache project provides a simple Cache interface, with several concrete
 implementations.
