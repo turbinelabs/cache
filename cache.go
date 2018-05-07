@@ -18,7 +18,7 @@ limitations under the License.
 // concrete implementations.
 package cache
 
-//go:generate mockgen -source $GOFILE -destination mock_$GOFILE -package $GOPACKAGE
+//go:generate mockgen -source $GOFILE -destination mock_$GOFILE -package $GOPACKAGE --write_package_comment=false
 
 // Cache represents a generic Cache. Specific Cache implementations
 // may provide LRU or expiration semantics.
